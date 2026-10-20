@@ -1,0 +1,50 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  SETTLED
+  FAILED
+  REVERSED
+}
+
+model PayoutInstruction {
+  id              String        @id @default(uuid())
+  payoutId        String        @unique
+  ledgerId        String
+  amount          Int           // Stored in minor units (cents) to eliminate float precision issues
+  currency        String        // ISO 4217 code (e.g., USD, EUR, VND)
+  status          PayoutStatus  @default(PENDING)
+  method          String
+  recipientId     String
+  idempotencyKey  String        @unique
+  retryCount      Int           @default(0)
+  metadata        Json?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([ledgerId])
+  @@index([status])
+  @@index([idempotencyKey])
+  @@map("payout_instructions")
+}
+
+model LedgerAccount {
+  id            String   @id @default(uuid())
+  accountId     String   @unique
+  balance       Int      // Minor units
+  currency      String
+  lockedBalance Int      @default(0) // Pessimistic locking accumulator
+  version       Int      @default(0) // Optimistic concurrency control
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("ledger_accounts")
+}
