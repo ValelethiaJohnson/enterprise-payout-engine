@@ -1,10 +1,13 @@
+# Enterprise Payout Engine
+
+An enterprise-grade financial payout engine architected for high-concurrency environments, featuring automated ledger reconciliation, split-payment routing, idempotent transfer pipelines, and multi-PSP failover capabilities.
+
 ## Payout Architecture
 
 The payout module handles the transfer of available funds from the platform balance to sellers, vendors, creators, or connected accounts.
 
 Unlike customer payments, payouts are outbound transactions. They require separate balance tracking, eligibility checks, provider integration, reconciliation, and failure handling.
 
-> This payout implementation is intended for demonstration purposes. Real fund transfers require a properly configured payout provider and verified recipient accounts.
 
 ### Payout Features
 
@@ -338,6 +341,20 @@ sequenceDiagram
 ## Automatic Payouts
 
 Automatic payouts may be processed by a scheduled job.
+## Repository Structure
+
+```text
+enterprise-payout-engine/
+├── prisma/
+│   └── schema.prisma         # Database schema for ledgers, balances, and payout instructions
+├── src/
+│   ├── types/
+│   │   └── payout.ts         # TypeScript domain models and strict interfaces
+│   ├── services/             # Core business logic (payout, balance, compliance)
+│   ├── payouts/              # Gateway adapters (Stripe Connect, Mock, etc.)
+│   └── repositories/         # Data access layer
+├── .env.example              # Environment configuration template
+└── README.md
 
 Example payout schedules:
 
@@ -572,6 +589,22 @@ PAYOUT_AUTO_APPROVAL_LIMIT=5000000
 ```
 
 Provider credentials must remain on the server and must never be exposed to the frontend.
+
+## Environment Configuration
+
+Copy `.env.example` to `.env` and configure your secure runtime parameters:
+
+```env
+NODE_ENV=production
+PORT=4000
+DATABASE_URL="postgresql://user:password@localhost:5432/enterprise_payout_db?schema=public&connection_limit=20"
+REDIS_URL="redis://default:secure_password@localhost:6379"
+STRIPE_SECRET_KEY="sk_live_sample_key"
+STRIPE_WEBHOOK_SECRET="whsec_sample_secret"
+PAYOUT_MINIMUM_AMOUNT=100000
+PAYOUT_DEFAULT_CURRENCY=USD
+PAYOUT_SCHEDULE=manual
+PAYOUT_AUTO_APPROVAL_LIMIT=5000000
 
 ## Payout Security Considerations
 
